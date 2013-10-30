@@ -117,7 +117,13 @@ module Babushka
           log Logging.closing_log_message(message, result, opts), opts
         }
       else
-        message = message.to_s.rstrip.gsub "\n", "\n#{Logging.indentation}"
+        message = message.to_s
+        unless RUBY_VERSION.start_with?('1.8.')
+          unless message.force_encoding('utf-8').valid_encoding?
+            message.encode("utf-16be", :invalid => :replace, :replace => "?").encode("utf-8")
+          end
+        end
+        message = message.rstrip.gsub "\n", "\n#{Logging.indentation}"
         message = "#{Logging::TICK_CHAR.colorize('grey')} #{message}" if opts[:as] == :ok
         message = message.colorize 'red' if opts[:as] == :error
         message = message.colorize 'yellow' if opts[:as] == :warning
